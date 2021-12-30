@@ -1,11 +1,15 @@
 let cOffset, cDelta;
+let intensity = .75;
 
 
 function setup() {
+
   colorMode(HSB, 1)
   createCanvas(innerWidth, innerHeight);
+
+  // translate(width / 2, height / 2);
   cOffset = 0;
-  cDelta = 1 / 6.;
+  cDelta = 0;
 }
 function draw() {
   circleField();
@@ -13,10 +17,11 @@ function draw() {
 }
 
 function circleField() {
-  let hue = (cOffset + cDelta) % 1;
-  fill(color(hue, 1, 1));
-  stroke(color(cOffset, 1, .5));
-  background(color(cOffset, 1, .5));
+  let cDeltaShifted = (Math.ceil((cDelta * 5) % 12 / 2) / 6);
+  let hue = (cOffset + cDeltaShifted) % 1;
+
+  stroke(color(cOffset, 0, .5));
+  background(color(cOffset, 0, .5));
   l = [];
   let r = Math.min(7, (innerHeight * innerHeight) / 1000);
   let breakLoopCount = 0;
@@ -45,6 +50,10 @@ function circleField() {
       break;
     }
     if (printCircle) {
+      fill(color(hue, intensity, .5));
+      if (x > y) {
+        fill(color(cOffset, intensity, .5));
+      }
       circle(p.x, p.y, p.r * 2);
       l[i] = p;
       area += p.r * p.r * Math.PI;
@@ -52,11 +61,12 @@ function circleField() {
       i--;
     }
   }
-  console.log(hue, cDelta, cOffset, area, width * height, area / width / height);
-  cDelta += 1 / 6.;
-  if (cDelta >= 11 / 12.) {
-    cDelta = 1 / 6.;
-    cOffset += 5 / 12.;
+  console.log(hue, cDeltaShifted, cOffset, cDelta)
+  // console.log(area, width * height, area / width / height);
+  cDelta++;
+  if (cDelta == 6) {
+    cDelta = 0;
+    cOffset += 1 / 12.;
     cOffset %= 1;
   }
 }
