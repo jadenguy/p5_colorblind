@@ -1,37 +1,67 @@
 let cOffset, cDelta;
 let intensity = .75;
+let field;
 
 
 function setup() {
-
-  colorMode(HSB, 1)
+  colorMode(HSB, 1);
   createCanvas(innerWidth, innerHeight);
 
-  // translate(width / 2, height / 2);
+  field = buildTable();
   cOffset = 0;
   cDelta = 0;
+  incrementColor();
 }
 function draw() {
-  circleField();
+  drawField();
   noLoop();
 }
 
-function circleField() {
+function drawField() {
+  translate(width / 2, height / 2);
   let cDeltaShifted = (Math.ceil((cDelta * 5) % 12 / 2) / 6);
-  let hue = (cOffset + cDeltaShifted) % 1;
+  let cOffsetShifted = cOffset / 12;
+  let hue = (cOffsetShifted + cDeltaShifted) % 1;
+  stroke(color(cOffsetShifted, 0, .5));
+  background(color(cOffsetShifted, 0, .5));
+  let l = field;
+  l.forEach(p => {
+    fill(color(hue, intensity, .5));
+    if (p.x > p.y) {
+      fill(color(cOffsetShifted, intensity, .5));
+    }
+    circle(p.x, p.y, p.r * 2);
+  });
+}
 
-  stroke(color(cOffset, 0, .5));
-  background(color(cOffset, 0, .5));
-  l = [];
+function incrementColor() {
+  cDelta += 1;
+  if (cDelta >= 6) {
+    cDelta %= 6;
+    cOffset++;
+    cOffset %= 2;
+  }
+  console.log(cOffset, cDelta)
+}
+
+function decrementColor() {
+  cDelta--;
+  if (cDelta < 0) {
+    cDelta = 5;
+    cOffset++;
+    cOffset %= 2;
+  }
+  console.log(cOffset, cDelta)
+}
+
+function buildTable() {
   let r = Math.min(7, (innerHeight * innerHeight) / 1000);
+  let count = (width * height) / r / r;
+  l = [];
   let breakLoopCount = 0;
-  let count = (width * height) / r / r / Math.PI;
-
-  // let count = 1;
-  let area = 0;
   for (let i = 0; i < count; i++) {
-    let x = map(random(), 0, 1, 0, width);
-    let y = map(random(), 0, 1, 0, height);
+    let x = map(random(), 0, 1, -width / 2, width / 2);
+    let y = map(random(), 0, 1, -height / 2, height / 2);
     let p = { r: r, x: x, y: y };
     let printCircle = true;
     for (let j = 0; printCircle && j < l.length; j++) {
@@ -50,34 +80,26 @@ function circleField() {
       break;
     }
     if (printCircle) {
-      fill(color(hue, intensity, .5));
-      if (x > y) {
-        fill(color(cOffset, intensity, .5));
-      }
-      circle(p.x, p.y, p.r * 2);
       l[i] = p;
-      area += p.r * p.r * Math.PI;
     } else {
       i--;
     }
   }
-  console.log(hue, cDeltaShifted, cOffset, cDelta)
-  // console.log(area, width * height, area / width / height);
-  cDelta++;
-  if (cDelta == 6) {
-    cDelta = 0;
-    cOffset += 1 / 12.;
-    cOffset %= 1;
-  }
+  return l;
 }
 
 function mousePressed() {
+
+}
+
+function mouseReleased() {
+  incrementColor();
   loop();
 }
 
-function mouseReleased() { }
-function mouseDragged() { }
+function mouseDragged() { decrementColor(); }
 function windowResized() {
   resizeCanvas(innerWidth, innerHeight);
+  field = buildTable();
   loop();
 }
