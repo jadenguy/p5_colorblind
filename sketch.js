@@ -97,7 +97,9 @@ function mouseReleased() {
   loop();
 }
 
-function mouseDragged() { decrementColor(); }
+function mouseDragged() {
+  // decrementColor();
+}
 function windowResized() {
   resizeCanvas(innerWidth, innerHeight);
   field = buildTable();
