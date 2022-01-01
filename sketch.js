@@ -1,9 +1,11 @@
 let cOffset, cDelta;
-let intensity = .75;
+let satLower = .25;
+let satUpper = .5;
 let field;
 
 
 function setup() {
+  console.log('setup');
   colorMode(HSB, 1);
   createCanvas(innerWidth, innerHeight);
 
@@ -13,28 +15,46 @@ function setup() {
   incrementColor();
 }
 function draw() {
-  drawField();
+  console.log('step');
+  funcs = [];
+  const triangle = (point) => { return point.x > point.y }
+  const plus = (point) => { return Math.abs(point.x) < .25 || Math.abs(point.y) < .25 }
+  const square = (point) => { return Math.abs(point.x) < .5 && Math.abs(point.y) < .5 }
+  funcs.push(triangle);
+  funcs.push(plus);
+  funcs.push(square);
+  drawField(random(funcs));
   noLoop();
+  // console.log('stepDone');
 }
 
-function drawField() {
+function drawField(eval = (point) => { return point.x > point.y }) {
+  // console.log('drawing');
+  let minAxis = Math.min(width, height);
+  let newScale = minAxis / 2;
   translate(width / 2, height / 2);
-  let cDeltaShifted = (Math.ceil((cDelta * 5) % 12 / 2) / 6);
-  let cOffsetShifted = cOffset / 12;
-  let hue = (cOffsetShifted + cDeltaShifted) % 1;
-  stroke(color(cOffsetShifted, 0, .5));
-  background(color(cOffsetShifted, 0, .5));
-  let l = field;
-  l.forEach(p => {
-    fill(color(hue, intensity, .5));
-    if (p.x > p.y) {
-      fill(color(cOffsetShifted, intensity, .5));
+  scale(newScale);
+
+  let hueShift = (Math.ceil((cDelta * 5) % 12 / 2) / 6);
+  let bgHue = cOffset / 12;
+  let hue = (bgHue + hueShift) % 1;
+  stroke(color(bgHue, 0, .5));
+  background(color(bgHue, 0, .5));
+  noStroke();
+
+  for (let i = 0; i < field.length; i++) {
+    const point = field[i];
+    const intensity = random(satLower, satUpper);
+    fill(color(bgHue, intensity, .5));
+    if (eval(point)) {
+      fill(color(hue, intensity, .5));
     }
-    circle(p.x, p.y, p.r * 2);
-  });
+    circle(point.x, point.y, point.r * 2);
+  }
 }
 
 function incrementColor() {
+  // console.log('inc');
   cDelta += 1;
   if (cDelta >= 6) {
     cDelta %= 6;
@@ -45,6 +65,7 @@ function incrementColor() {
 }
 
 function decrementColor() {
+  // console.log('dec');
   cDelta--;
   if (cDelta < 0) {
     cDelta = 5;
@@ -55,42 +76,41 @@ function decrementColor() {
 }
 
 function buildTable() {
-  let r = Math.min(7, (innerHeight * innerHeight) / 1000);
-  let count = (width * height) / r / r;
-  l = [];
+  // console.log('building');
+  let count = 100000;
+  points = [];
   let breakLoopCount = 0;
-  for (let i = 0; i < count; i++) {
-    let x = map(random(), 0, 1, -width / 2, width / 2);
-    let y = map(random(), 0, 1, -height / 2, height / 2);
-    let p = { r: r, x: x, y: y };
-    let printCircle = true;
-    for (let j = 0; printCircle && j < l.length; j++) {
-      let e = l[j];
-      let a = p.x - e.x;
-      let b = p.y - e.y;
+  while (points.length < count) {
+    let point = {
+      r: random(.01, .02),
+      x: random(-1, 1),
+      y: random(-1, 1),
+    };
+    let valid = true;
+    for (let j = 0; j < points.length; j++) {
+      let other = points[j];
+      let a = point.x - other.x;
+      let b = point.y - other.y;
       let c = Math.sqrt(a * a + b * b);
-      if (c < e.r || c - e.r < 2) {
-        printCircle = false;
+      if (c < other.r || c - other.r < .005) {
+        valid = false;
         breakLoopCount++;
+        break;
       }
-      p.r = Math.min(p.r, c - e.r);
+      point.r = Math.min(point.r, c - other.r);
     }
-    if (breakLoopCount > 100000) {
-      console.log(i, count, i / count);
+    if (breakLoopCount > count) {
+      console.log(points.length, count, points.length / count);
       break;
     }
-    if (printCircle) {
-      l[i] = p;
-    } else {
-      i--;
+    if (valid) {
+      points.push(point);
     }
   }
-  return l;
+  return points;
 }
 
-function mousePressed() {
-
-}
+function mousePressed() { }
 
 function mouseReleased() {
   incrementColor();
@@ -102,6 +122,6 @@ function mouseDragged() {
 }
 function windowResized() {
   resizeCanvas(innerWidth, innerHeight);
-  field = buildTable();
+  // field = buildTable();
   loop();
 }
