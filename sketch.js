@@ -2,27 +2,36 @@ let cOffset, cDelta;
 let satLower = .25;
 let satUpper = .5;
 let field;
+let funcs;
 
 
 function setup() {
-  console.log('setup');
+  // console.log('setup');
   colorMode(HSB, 1);
   createCanvas(innerWidth, innerHeight);
-
   field = buildTable();
   cOffset = 0;
   cDelta = 0;
   incrementColor();
-}
-function draw() {
-  console.log('step');
   funcs = [];
-  const triangle = (point) => { return point.x > point.y }
-  const plus = (point) => { return Math.abs(point.x) < .25 || Math.abs(point.y) < .25 }
   const square = (point) => { return Math.abs(point.x) < .5 && Math.abs(point.y) < .5 }
-  funcs.push(triangle);
+  const triangle = (point) => { return square(point) && point.x > point.y }
+  const plus = (point) => { return square(point) && (Math.abs(point.x) < .125 || Math.abs(point.y) < .125) }
+  const diamond = (point) => { return .5 - Math.abs(point.x) > Math.abs(point.y) }
+  const triTwo = (point) => { return square(point) && Math.abs(point.x) < point.y / 2 + .25 }
+  const circle = (point) => { return point.x * point.x + point.y * point.y < .5 * .5 }
+  const nothing = (point) => { return false; }
+  // funcs.push(triangle); 
+  funcs.push(triTwo);
   funcs.push(plus);
   funcs.push(square);
+  funcs.push(diamond);
+  funcs.push(circle);
+}
+function draw() {
+  // console.log('step');
+
+  // funcs.push(nothing);
   drawField(random(funcs));
   noLoop();
   // console.log('stepDone');
@@ -38,6 +47,7 @@ function drawField(eval = (point) => { return point.x > point.y }) {
   let hueShift = (Math.ceil((cDelta * 5) % 12 / 2) / 6);
   let bgHue = cOffset / 12;
   let hue = (bgHue + hueShift) % 1;
+  console.log(hueShift * 6)
   stroke(color(bgHue, 0, .5));
   background(color(bgHue, 0, .5));
   noStroke();
@@ -57,7 +67,7 @@ function incrementColor() {
   // console.log('inc');
   cDelta += 1;
   if (cDelta >= 6) {
-    cDelta %= 6;
+    cDelta = 1;
     cOffset++;
     cOffset %= 2;
   }
@@ -67,17 +77,17 @@ function incrementColor() {
 function decrementColor() {
   // console.log('dec');
   cDelta--;
-  if (cDelta < 0) {
+  if (cDelta = -1) {
     cDelta = 5;
     cOffset++;
     cOffset %= 2;
   }
-  console.log(cOffset, cDelta)
+  // console.log(cOffset, cDelta)
 }
 
 function buildTable() {
   // console.log('building');
-  let count = 100000;
+  let count = 10000;
   points = [];
   let breakLoopCount = 0;
   while (points.length < count) {
@@ -100,7 +110,7 @@ function buildTable() {
       point.r = Math.min(point.r, c - other.r);
     }
     if (breakLoopCount > count) {
-      console.log(points.length, count, points.length / count);
+      // console.log(points.length, count, points.length / count);
       break;
     }
     if (valid) {
