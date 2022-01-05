@@ -47,7 +47,7 @@ function drawField(eval = (point) => { return point.x > point.y }) {
   let hueShift = (Math.ceil((cDelta * 5) % 12 / 2) / 6);
   let bgHue = cOffset / 12;
   let hue = (bgHue + hueShift) % 1;
-  console.log(hueShift * 6)
+  // console.log(hueShift * 6)
   stroke(color(bgHue, 0, .5));
   background(color(bgHue, 0, .5));
   noStroke();
@@ -71,7 +71,7 @@ function incrementColor() {
     cOffset++;
     cOffset %= 2;
   }
-  console.log(cOffset, cDelta)
+  // console.log(cOffset, cDelta)
 }
 
 function decrementColor() {
@@ -87,7 +87,7 @@ function decrementColor() {
 
 function buildTable() {
   // console.log('building');
-  let count = 10000;
+  let count = 8000;
   points = [];
   let breakLoopCount = 0;
   while (points.length < count) {
@@ -102,15 +102,15 @@ function buildTable() {
       let a = point.x - other.x;
       let b = point.y - other.y;
       let c = Math.sqrt(a * a + b * b);
-      if (c < other.r || c - other.r < .005) {
+      point.r = Math.min(point.r, c - other.r);
+      if (point.r < .005) {
         valid = false;
         breakLoopCount++;
         break;
       }
-      point.r = Math.min(point.r, c - other.r);
     }
-    if (breakLoopCount > count) {
-      // console.log(points.length, count, points.length / count);
+    if (breakLoopCount > count * 5) {
+      console.log(points.length, count, points.length / count);
       break;
     }
     if (valid) {
